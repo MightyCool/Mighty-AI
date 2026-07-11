@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mighty AI</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --panel-color: #13131a;
+            --accent-primary: #7b2cbf;
+            --accent-secondary: #9d4edd;
+            --text-main: #f8f9fa;
+            --text-muted: #94a3b8;
+            --user-bubble: #241442;
+            --ai-bubble: #1e1e24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #0a0a0c 100%);
+        }
+
+        /* Main App Container */
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 600px;
+            max-height: 850px;
+            background: rgba(19, 19, 26, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @media (min-width: 600px) {
+            .app-container {
+                border-radius: 24px;
+                height: 90vh;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(123, 44, 191, 0.15);
+            }
+        }
+
+        /* Header Styling */
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(180deg, rgba(123, 44, 191, 0.1) 0%, transparent 100%);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #e0aaff, #9d4edd, #c77dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Chat Screen Box */
+        .chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        /* Scrollbar styling */
+        .chat-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-window::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        /* Message Bubbles & Animations */
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+
+        .user-message {
+            background-color: var(--user-bubble);
+            color: #f3e8ff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(157, 77, 221, 0.2);
+        }
+
+        .ai-message {
+            background-color: var(--ai-bubble);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Input Area Footer */
+        .input-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(10, 10, 12, 0.5);
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #181822;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 6px 6px 6px 18px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 15px rgba(157, 77, 221, 0.25);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            padding: 10px 0;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #555e70;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            outline: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+            margin-left: 2px;
+        }
+
+        /* Typing Loader Animation */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 14px 18px;
+            background: var(--ai-bubble);
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        /* Keyframe Definitions */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        @keyframes pulseGlow {
+            from { filter: drop-shadow(0 0 2px rgba(157, 77, 221, 0.2)); }
+            to { filter: drop-shadow(0 0 8px rgba(157, 77, 221, 0.6)); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Mighty AI</h1>
+        <p>Powered by Gemini</p>
+    </header>
+
+    <div class="chat-window" id="chatWindow">
+        <div class="message ai-message">
+            Hey! I'm Mighty AI. What are we building or working on today?
+        </div>
+    </div>
+
+    <div class="input-footer">
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="Message Mighty AI..." autocomplete="off">
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live Cloudflare Worker Proxy Endpoint
+    const WORKER_URL = "https://mightyai.landonsloat70-62c.workers.dev/";
+
+    const chatWindow = document.getElementById("chatWindow");
+    const userInput = document.getElementById("userInput");
+
+    // Allow sending message by pressing 'Enter' key
+    userInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const query = userInput.value.trim();
+        if (!query) return;
+
+        // 1. Render User Message bubble
+        appendMessage(query, "user-message");
+        userInput.value = "";
+
+        // 2. Render Animated Typing Indicator
+        const loader = showTypingIndicator();
+
+        try {
+            // 3. Make request to your Cloudflare worker
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: query })
+            });
+
+            if (!response.ok) throw new Error("Network response error.");
+
+            const data = await response.json();
+            
+            // Remove the loading dots
+            loader.remove();
+
+            // Extract text matching your worker's structural response format
+            const aiText = data.candidates[0].content.parts[0].text;
+            
+            // 4. Render AI response bubble
+            appendMessage(aiText, "ai-message");
+
+        } catch (error) {
+            loader.remove();
+            appendMessage("Sorry, I'm having trouble connecting to my engine right now.", "ai-message");
+            console.error(error);
+        }
+    }
+
+    function appendMessage(text, className) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.innerText = text;
+        chatWindow.appendChild(messageDiv);
+        
+        // Push scroll down to newest message smoothly
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const indicator = document.createElement("div");
+        indicator.className = "typing-indicator";
+        indicator.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
+        chatWindow.appendChild(indicator);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return indicator;
+    }
+</script>
+
+</body>
+</html>
