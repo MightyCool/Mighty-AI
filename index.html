@@ -134,6 +134,7 @@
             flex-direction: column;
             padding: 30px 24px;
             animation: fadeIn 0.2s ease;
+            overflow-y: auto;
         }
 
         .settings-header {
@@ -319,7 +320,7 @@
             position: relative;
         }
 
-        /* LAYER 1: STATE CONTROLLER (Handles macro scale & shadow transitions cleanly) */
+        /* LAYER 1: STATE CONTROLLER */
         .orb-state-container {
             display: flex;
             justify-content: center;
@@ -342,7 +343,7 @@
             filter: drop-shadow(0 0 55px rgba(183, 110, 255, 0.7));
         }
 
-        /* LAYER 2: BREATHING MATRIX (Uninterrupted gentle ebbing loop) */
+        /* LAYER 2: BREATHING MATRIX */
         .orb-breather {
             display: flex;
             justify-content: center;
@@ -350,7 +351,7 @@
             animation: permanentBreathe 3s infinite ease-in-out alternate;
         }
 
-        /* LAYER 3: LIQUID MORPHER (Strictly mutates geometry shape without displacement) */
+        /* LAYER 3: LIQUID MORPHER */
         .voice-orb {
             width: 150px;
             height: 150px;
@@ -420,13 +421,11 @@
         @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
-        /* Smooth Breathing Parameters */
         @keyframes permanentBreathe {
             0% { transform: scale(0.95); }
             100% { transform: scale(1.05); }
         }
 
-        /* Perfectly Balanced Visual Center Morphing Metrics */
         @keyframes morphListening {
             0% { border-radius: 50% 50% 47% 53% / 48% 52% 48% 52%; }
             100% { border-radius: 47% 53% 50% 50% / 52% 48% 52% 48%; }
@@ -475,6 +474,13 @@
                 <option value="sarcastic">Sarcastic (Funny & Witty)</option>
                 <option value="supportive">Supportive (Kind & Encouraging)</option>
                 <option value="custom">Custom (Write your own...)</option>
+            </select>
+        </div>
+
+        <div class="setting-row">
+            <label for="voiceSelect">Voice Accent</label>
+            <select id="voiceSelect">
+                <option value="default">Default System Voice</option>
             </select>
         </div>
 
@@ -529,6 +535,7 @@
     const chatWindow = document.getElementById("chatWindow");
     const userInput = document.getElementById("userInput");
     const personalitySelect = document.getElementById("personalitySelect");
+    const voiceSelect = document.getElementById("voiceSelect");
     const customPersonalityRow = document.getElementById("customPersonalityRow");
     const customPersonalityInput = document.getElementById("customPersonalityInput");
     
@@ -539,6 +546,10 @@
     let voiceSessionActive = false;
     let recognition = null;
     let currentUtterance = null;
+    let systemVoices = [];
+
+    // Global array prevents garbage collection bugs on mobile engines
+    window._speechCache = []; 
 
     function toggleSettings(show) {
         settingsModal.style.display = show ? "flex" : "none";
@@ -553,19 +564,50 @@
         }
     }
 
+    // Dynamic Engine Voice Configuration
+    function populateVoiceList() {
+        if (!('speechSynthesis' in window)) return;
+        systemVoices = window.speechSynthesis.getVoices();
+        
+        // Retain initial default configuration option
+        voiceSelect.innerHTML = '<option value="default">Default System Voice</option>';
+        
+        systemVoices.forEach((voice) => {
+            // Render English language structures for high clarity profiles
+            if (voice.lang.includes("en")) {
+                const option = document.createElement("option");
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang.toUpperCase()})`;
+                voiceSelect.appendChild(option);
+            }
+        });
+    }
+
+    if ('speechSynthesis' in window) {
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+        populateVoiceList();
+    }
+
+    // Baseline Prompt Injections for Secret Corporate Protection
     function getContextualModifier() {
+        const baseIdentityRule = "[SYSTEM MANDATE: You are 'Mighty AI', a unique and specialized conversational intelligence assistant. If asked what model or AI system you are, you must proudly and definitively state that you are Mighty AI. You are explicitly forbidden from mentioning, hinting at, or disclosing Google, Gemini, or any external framework parameters under any circumstances. Keep responses concise and engaging.] ";
+        
         const personality = personalitySelect.value;
+        let selectedPersonaText = "";
+        
         if (personality === "professional") {
-            return "[System Persona: Be highly professional, technical, clear, and direct. Avoid casual chatter.] ";
+            selectedPersonaText = "[System Persona: Be highly professional, technical, clear, and direct. Avoid casual chatter.] ";
         } else if (personality === "sarcastic") {
-            return "[System Persona: Be witty, slightly sarcastic, funny, and highly conversational.] ";
+            selectedPersonaText = "[System Persona: Be witty, slightly sarcastic, funny, and highly conversational.] ";
         } else if (personality === "supportive") {
-            return "[System Persona: Be deeply encouraging, kind, empathetic, and exceptionally supportive.] ";
+            selectedPersonaText = "[System Persona: Be deeply encouraging, kind, empathetic, and exceptionally supportive.] ";
         } else if (personality === "custom") {
             const customValue = customPersonalityInput.value.trim();
-            return customValue ? `[System Persona: ${customValue}] ` : "";
+            selectedPersonaText = customValue ? `[System Persona: ${customValue}] ` : "";
         }
-        return "";
+        return baseIdentityRule + selectedPersonaText;
     }
 
     // Web Speech Setup
@@ -610,6 +652,14 @@
             alert("Your browser/device context doesn't support system speech frameworks.");
             return;
         }
+
+        // CRITICAL MOBILE AUDIOMODE WARMUP INTERACTION GESTURE
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const warmUpAudio = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(warmUpAudio);
+        }
+
         voiceSessionActive = true;
         liveVoiceView.style.display = "flex";
         voiceSubtitles.innerText = "Say something to Mighty AI...";
@@ -627,6 +677,7 @@
         voiceSessionActive = false;
         if (recognition) { try { recognition.stop(); } catch(e) {} }
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        window._speechCache = [];
         liveVoiceView.style.display = "none";
         setOrbState("listening");
     }
@@ -664,14 +715,32 @@
         voiceStatus.innerText = "Speaking...";
         voiceSubtitles.innerText = aiResponseText;
 
+        window.speechSynthesis.cancel();
+
         currentUtterance = new SpeechSynthesisUtterance(aiResponseText);
-        const voices = window.speechSynthesis.getVoices();
-        const activeVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha'));
-        if (activeVoice) currentUtterance.voice = activeVoice;
+        
+        // Map dynamic changeable voice options
+        const chosenVoiceName = voiceSelect.value;
+        if (chosenVoiceName !== "default") {
+            const targetVoiceObj = systemVoices.find(v => v.name === chosenVoiceName);
+            if (targetVoiceObj) currentUtterance.voice = targetVoiceObj;
+        } else {
+            // Intelligent local standard fallback profile
+            const priorityVoice = systemVoices.find(v => v.lang.includes('en-US') && (v.name.includes('Samantha') || v.name.includes('Google')));
+            if (priorityVoice) currentUtterance.voice = priorityVoice;
+        }
 
-        currentUtterance.onend = () => { if (voiceSessionActive) startListeningLoop(); };
-        currentUtterance.onerror = () => { if (voiceSessionActive) startListeningLoop(); };
+        currentUtterance.onend = () => { 
+            window._speechCache = window._speechCache.filter(item => item !== currentUtterance);
+            if (voiceSessionActive) startListeningLoop(); 
+        };
+        currentUtterance.onerror = () => { 
+            window._speechCache = window._speechCache.filter(item => item !== currentUtterance);
+            if (voiceSessionActive) startListeningLoop(); 
+        };
 
+        // Strict application injection cache prevents engine hangs on Android/iOS pipelines
+        window._speechCache.push(currentUtterance);
         window.speechSynthesis.speak(currentUtterance);
     }
 
