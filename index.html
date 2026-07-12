@@ -6,12 +6,14 @@
     <title>Mighty AI</title>
     <style>
         :root {
-            --bg-color: #0d0d0d;
-            --input-bg: #212121;
-            --text-main: #ececec;
-            --text-muted: #b4b4b4;
-            --accent-green: #10a37f;
-            --mic-active: #ef4444;
+            --bg-color: #0a0a0c;
+            --panel-color: #13131a;
+            --accent-primary: #7b2cbf;
+            --accent-secondary: #9d4edd;
+            --text-main: #f8f9fa;
+            --text-muted: #94a3b8;
+            --user-bubble: #241442;
+            --ai-bubble: #1e1e24;
         }
 
         * {
@@ -24,116 +26,147 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #0a0a0c 100%);
         }
 
-        /* Full Screen Center Area matching ChatGPT constraints */
+        /* Main App Container */
         .app-container {
             width: 100vw;
-            max-width: 768px;
-            height: 100%;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 600px;
+            background: rgba(19, 19, 26, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
             position: relative;
-            padding: 0 16px;
         }
 
-        /* Top sticky header */
+        @media (min-width: 600px) {
+            .app-container {
+                border-radius: 24px;
+                height: 90vh;
+                height: 90dvh;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(123, 44, 191, 0.15);
+            }
+        }
+
+        /* Top Bar Header */
         header {
-            padding: 16px 0;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(180deg, rgba(123, 44, 191, 0.1) 0%, transparent 100%);
+            z-index: 10;
         }
 
         header h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #ffffff;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(45deg, #e0aaff, #9d4edd, #c77dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* Chat window showing clean stacked rows instead of flashy boxes */
+        /* Live Mode Button */
+        .live-toggle-btn {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(157, 77, 221, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .live-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* VIEW 1: Traditional Premium Chat Layout */
+        .chat-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
         .chat-window {
             flex: 1;
             overflow-y: auto;
-            padding: 24px 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 28px;
+            gap: 16px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
 
-        .chat-window::-webkit-scrollbar {
-            width: 4px;
-        }
-        .chat-window::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        /* Minimal Row Layout like ChatGPT */
-        .message-row {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInRow 0.3s ease-out forwards;
-        }
-
-        .message-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-
-        .user-row .message-label {
-            color: #ffffff;
-            align-self: flex-start;
-        }
-
-        .ai-row .message-label {
-            color: var(--text-muted);
-            align-self: flex-start;
-        }
-
-        .message-content {
-            font-size: 1rem;
-            line-height: 1.6;
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
             word-wrap: break-word;
-            white-space: pre-wrap;
-            color: var(--text-main);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
 
-        /* Pill Bottom Action Container */
+        .user-message {
+            background-color: var(--user-bubble);
+            color: #f3e8ff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(157, 77, 221, 0.2);
+        }
+
+        .ai-message {
+            background-color: var(--ai-bubble);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
         .input-footer {
-            padding: 16px 0;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom));
-            background: linear-gradient(180deg, transparent 0%, var(--bg-color) 30%);
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(10, 10, 12, 0.5);
         }
 
         .input-wrapper {
             display: flex;
             align-items: center;
-            background: var(--input-bg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 28px;
-            padding: 8px 12px 8px 18px;
-            gap: 10px;
-            transition: border-color 0.2s ease;
+            background: #181822;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 6px 6px 6px 18px;
+            transition: all 0.3s ease;
         }
 
         .input-wrapper:focus-within {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 15px rgba(157, 77, 221, 0.25);
         }
 
         .input-wrapper input {
@@ -141,69 +174,143 @@
             background: none;
             border: none;
             outline: none;
-            color: #ffffff;
+            color: var(--text-main);
             font-size: 16px;
-            padding: 8px 0;
+            padding: 10px 0;
         }
 
         .input-wrapper input::placeholder {
-            color: #7f7f7f;
+            color: #555e70;
         }
 
-        /* Action Icons embedded seamlessly */
-        .action-btn {
-            background: none;
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             border: none;
             outline: none;
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.2s ease;
         }
 
-        .mic-btn {
-            fill: var(--text-muted);
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+            margin-left: 2px;
         }
 
-        .mic-btn:hover {
-            fill: #ffffff;
-            background: rgba(255, 255, 255, 0.05);
+        /* VIEW 2: ChatGPT Immersive Voice Mode Screen */
+        .live-voice-view {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, #16072b 0%, #050507 100%);
+            z-index: 100;
+            display: none; /* Managed dynamically by JS */
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 50px 24px;
+            animation: fadeIn 0.4s ease;
         }
 
-        .mic-btn.listening {
-            background: var(--mic-active);
-            fill: #ffffff;
-            animation: pulseRecord 1.5s infinite;
+        .live-status {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 20px;
         }
 
-        .send-btn {
+        /* Immersive Central Voice Fluid Orb */
+        .orb-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .voice-orb {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(45deg, #7b2cbf, #b76eff, #e0aaff);
+            border-radius: 50%;
+            filter: drop-shadow(0 0 30px rgba(157, 77, 221, 0.5));
+            transition: all 0.5s ease-in-out;
+            transform-origin: center;
+        }
+
+        /* Dynamic Orb State Classes mapping to voice status loop */
+        .voice-orb.listening {
+            animation: morphListening 4s infinite linear alternate, pulseListening 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 35px rgba(157, 77, 221, 0.6));
+        }
+
+        .voice-orb.thinking {
+            scale: 0.9;
+            animation: morphThinking 1.2s infinite linear;
+            filter: drop-shadow(0 0 25px rgba(224, 170, 255, 0.4));
+            background: linear-gradient(45deg, #4a157d, #7b2cbf, #9d4edd);
+        }
+
+        .voice-orb.speaking {
+            animation: morphSpeaking 2s infinite linear alternate, pulseSpeaking 0.6s infinite ease-in-out alternate;
+            filter: drop-shadow(0 0 50px rgba(183, 110, 255, 0.8));
+            scale: 1.15;
+        }
+
+        /* Subtitles text inside voice mode layout */
+        .voice-subtitles {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--text-main);
+            text-align: center;
+            max-width: 90%;
+            min-height: 60px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        /* Voice view bottom panel control button */
+        .end-voice-btn {
             background: #ffffff;
-            fill: var(--bg-color);
+            border: none;
+            color: #000000;
+            padding: 14px 36px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
 
-        .send-btn:hover {
-            opacity: 0.9;
-        }
-
-        .send-btn:active {
+        .end-voice-btn:active {
             transform: scale(0.95);
+            background: #e2e2e2;
         }
 
-        /* Streamlined Typing Loader */
+        /* Typing Dots Loader for Text Mode */
         .typing-indicator {
             display: flex;
             gap: 5px;
-            padding: 8px 0;
+            padding: 14px 18px;
+            background: var(--ai-bubble);
+            border-radius: 20px;
+            border-bottom-left-radius: 4px;
             align-self: flex-start;
+            animation: slideIn 0.3s ease forwards;
         }
 
         .typing-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             background: var(--text-muted);
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
@@ -211,132 +318,247 @@
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
-        @keyframes fadeInRow { to { opacity: 1; transform: translateY(0); } }
+        /* Animations Framework */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        @keyframes pulseRecord {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+
+        /* Orb Morphing Mathematics */
+        @keyframes morphListening {
+            0% { border-radius: 45% 55% 50% 50% / 50% 50% 50% 50%; }
+            100% { border-radius: 55% 45% 52% 48% / 48% 52% 45% 55%; }
+        }
+        @keyframes pulseListening {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        @keyframes morphThinking {
+            0% { transform: rotate(0deg) scale(0.95); border-radius: 40% 60% 40% 60% / 40% 60% 40% 60%; }
+            100% { transform: rotate(360deg) scale(0.95); border-radius: 60% 40% 60% 40% / 60% 40% 60% 40%; }
+        }
+
+        @keyframes morphSpeaking {
+            0% { border-radius: 30% 70% 40% 60% / 50% 30% 70% 50%; }
+            100% { border-radius: 65% 35% 60% 40% / 40% 60% 35% 65%; }
+        }
+        @keyframes pulseSpeaking {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.12); }
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
+    
     <header>
         <h1>Mighty AI</h1>
+        <button class="live-toggle-btn" onclick="startLiveVoiceSession()">
+            <span>🎙️</span> Live Session
+        </button>
     </header>
 
-    <div class="chat-window" id="chatWindow">
-        <div class="message-row ai-row">
-            <div class="message-label">Mighty AI</div>
-            <div class="message-content">Hey! I'm Mighty AI. What are we building or working on today?</div>
+    <div class="chat-view" id="chatView">
+        <div class="chat-window" id="chatWindow">
+            <div class="message ai-message">
+                Hey! I'm Mighty AI. What are we building or working on today?
+            </div>
+        </div>
+
+        <div class="input-footer">
+            <div class="input-wrapper">
+                <input type="text" id="userInput" placeholder="Message Mighty AI..." autocomplete="off">
+                <button class="send-btn" onclick="sendTextMessage()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="input-footer">
-        <div class="input-wrapper">
-            <button class="action-btn mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Speak">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"></path>
-                </svg>
-            </button>
-            
-            <input type="text" id="userInput" placeholder="Message Mighty AI..." autocomplete="off">
-            
-            <button class="action-btn send-btn" id="sendBtn" onclick="sendMessage()">
-                <svg viewBox="0 0 24 24" width="16" height="16">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                </svg>
-            </button>
+    <div class="live-voice-view" id="liveVoiceView">
+        <div class="live-status" id="voiceStatus">Connecting...</div>
+
+        <div class="orb-container">
+            <div class="voice-orb listening" id="voiceOrb"></div>
         </div>
+
+        <div class="voice-subtitles" id="voiceSubtitles">Tap the button below to start talking...</div>
+
+        <button class="end-voice-btn" onclick="endLiveVoiceSession()">End Session</button>
     </div>
+
 </div>
 
 <script>
     const WORKER_URL = "https://mightyai.landonsloat70-62c.workers.dev/";
 
+    // UI View Handles
+    const chatView = document.getElementById("chatView");
+    const liveVoiceView = document.getElementById("liveVoiceView");
     const chatWindow = document.getElementById("chatWindow");
     const userInput = document.getElementById("userInput");
-    const micBtn = document.getElementById("micBtn");
+    
+    // Voice Mode Specific Handles
+    const voiceStatus = document.getElementById("voiceStatus");
+    const voiceOrb = document.getElementById("voiceOrb");
+    const voiceSubtitles = document.getElementById("voiceSubtitles");
 
+    let voiceSessionActive = false;
     let recognition = null;
-    let isListening = false;
+    let currentUtterance = null;
 
-    // Web Speech API Initialization
+    // Setup Web Speech API Engine elements
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        recognition.continuous = false; // Processes speech instantly as soon as a pause happens
         recognition.interimResults = false;
         recognition.lang = 'en-US';
 
         recognition.onstart = () => {
-            isListening = true;
-            micBtn.classList.add("listening");
-            userInput.placeholder = "Listening...";
+            if (!voiceSessionActive) return;
+            setOrbState("listening");
+            voiceStatus.innerText = "Listening...";
         };
 
-        recognition.onresult = (event) => {
-            userInput.value = event.results[0][0].transcript;
+        recognition.onresult = async (event) => {
+            if (!voiceSessionActive) return;
+            const transcript = event.results[0][0].transcript;
+            
+            // Show user transcript in real-time on screen
+            voiceSubtitles.innerText = `You: "${transcript}"`;
+            
+            // Step forward into generation pipeline
+            await processVoiceInput(transcript);
         };
 
         recognition.onerror = (e) => {
-            console.error(e);
-            stopListeningState();
+            console.error("Speech error caught: ", e);
+            // Auto recovery loop to prevent stalling on silent timeouts
+            if (voiceSessionActive) {
+                setTimeout(() => { startListeningLoop(); }, 400);
+            }
         };
 
         recognition.onend = () => {
-            stopListeningState();
-            if (userInput.value.trim() !== "") {
-                sendMessage();
+            // Keep looping back to voice entry if AI isn't currently responding
+            if (voiceSessionActive && !voiceOrb.classList.contains("thinking") && !voiceOrb.classList.contains("speaking")) {
+                startListeningLoop();
             }
         };
-    } else {
-        micBtn.style.display = "none";
     }
 
-    function toggleVoiceInput() {
-        if (!recognition) return;
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    // Controls the visual classes for the morphing orb animations
+    function setOrbState(state) {
+        voiceOrb.className = "voice-orb"; // strip
+        if (state) voiceOrb.classList.add(state);
+    }
 
-        if (!isListening) {
-            recognition.start();
-        } else {
-            recognition.stop();
+    // Start Live Voice Loop Session (Triggered via click interaction gesture to unlock speaker permissions)
+    function startLiveVoiceSession() {
+        if (!SpeechRecognition) {
+            alert("Your browser or device context doesn't support the system Web Speech Engine.");
+            return;
         }
+        voiceSessionActive = true;
+        liveVoiceView.style.display = "flex";
+        voiceSubtitles.innerText = "Say something to Mighty AI...";
+        
+        startListeningLoop();
     }
 
-    function stopListeningState() {
-        isListening = false;
-        micBtn.classList.remove("listening");
-        userInput.placeholder = "Message Mighty AI...";
+    // Safely executes microphone hook
+    function startListeningLoop() {
+        try {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            recognition.start();
+        } catch(e) {}
     }
 
-    function speakOutLoud(text) {
+    // Kill Live Voice Session and route back to text layout
+    function endLiveVoiceSession() {
+        voiceSessionActive = false;
+        if (recognition) {
+            try { recognition.stop(); } catch(e) {}
+        }
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(voice => voice.lang.includes('en-US') && voice.name.includes('Samantha'));
-            if (preferredVoice) utterance.voice = preferredVoice;
+        }
+        liveVoiceView.style.display = "none";
+        setOrbState("listening");
+    }
 
-            window.speechSynthesis.speak(utterance);
+    // Sends voice queries straight to Cloudflare Engine proxy
+    async function processVoiceInput(text) {
+        setOrbState("thinking");
+        voiceStatus.innerText = "Thinking...";
+
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+
+            if (!voiceSessionActive) return;
+            
+            // Route response text directly into Audio Matrix output
+            speakVoiceResponse(data.text);
+
+        } catch (error) {
+            if (!voiceSessionActive) return;
+            speakVoiceResponse("Mighty AI service is temporarily unavailable. Please try again later.");
         }
     }
 
-    userInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") sendMessage();
-    });
+    // Handles Speech Synthesis and triggers responsive animation behaviors
+    function speakVoiceResponse(aiResponseText) {
+        if (!('speechSynthesis' in window)) {
+            voiceSubtitles.innerText = aiResponseText;
+            setOrbState("listening");
+            return;
+        }
 
-    async function sendMessage() {
+        setOrbState("speaking");
+        voiceStatus.innerText = "Speaking...";
+        voiceSubtitles.innerText = aiResponseText;
+
+        currentUtterance = new SpeechSynthesisUtterance(aiResponseText);
+
+        // Apple Voice Core engine balancing for iPhones
+        const voices = window.speechSynthesis.getVoices();
+        const activeVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha'));
+        if (activeVoice) currentUtterance.voice = activeVoice;
+
+        currentUtterance.onend = () => {
+            if (!voiceSessionActive) return;
+            // Complete cycle loop: Immediately start listening for your next reply handoff!
+            startListeningLoop();
+        };
+
+        currentUtterance.onerror = () => {
+            if (!voiceSessionActive) return;
+            startListeningLoop();
+        };
+
+        window.speechSynthesis.speak(currentUtterance);
+    }
+
+    /* Traditional Text View Engine Interactions */
+    userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendTextMessage(); });
+
+    async function sendTextMessage() {
         const query = userInput.value.trim();
         if (!query) return;
 
-        appendMessageRow(query, "You", "user-row");
+        appendChatMessage(query, "user-message");
         userInput.value = "";
-
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
         const loader = showTypingIndicator();
 
@@ -346,58 +568,36 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: query })
             });
-
             if (!response.ok) throw new Error();
-
             const data = await response.json();
-            loader.remove();
             
-            appendMessageRow(data.text, "Mighty AI", "ai-row");
-            speakOutLoud(data.text);
-
+            loader.remove();
+            appendChatMessage(data.text, "ai-message");
         } catch (error) {
             loader.remove();
-            const errText = "Mighty AI service is temporarily unavailable. Please try again later.";
-            appendMessageRow(errText, "Mighty AI", "ai-row");
-            speakOutLoud(errText);
+            appendChatMessage("Mighty AI service is temporarily unavailable. Please try again later.", "ai-message");
         }
     }
 
-    function appendMessageRow(text, senderLabel, className) {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = `message-row ${className}`;
-        
-        rowDiv.innerHTML = `
-            <div class="message-label">${senderLabel}</div>
-            <div class="message-content"></div>
-        `;
-        
-        // Escape content safely
-        rowDiv.querySelector(".message-content").innerText = text;
-        
-        chatWindow.appendChild(rowDiv);
+    function appendChatMessage(text, className) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.innerText = text;
+        chatWindow.appendChild(messageDiv);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     function showTypingIndicator() {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = "message-row ai-row";
-        rowDiv.innerHTML = `
-            <div class="message-label">Mighty AI</div>
-            <div class="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        `;
-        chatWindow.appendChild(rowDiv);
+        const indicator = document.createElement("div");
+        indicator.className = "typing-indicator";
+        indicator.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+        chatWindow.appendChild(indicator);
         chatWindow.scrollTop = chatWindow.scrollHeight;
-        return rowDiv;
+        return indicator;
     }
 
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.getVoices();
-    }
+    // Wake Up Speech Synthesis array pools natively
+    if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
 </script>
 
 </body>
