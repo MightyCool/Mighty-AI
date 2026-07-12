@@ -58,26 +58,20 @@
 
         /* Header Styling */
         header {
-            padding: 20px;
+            padding: 24px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             background: linear-gradient(180deg, rgba(123, 44, 191, 0.1) 0%, transparent 100%);
         }
 
         header h1 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 800;
             letter-spacing: 1px;
             background: linear-gradient(45deg, #e0aaff, #9d4edd, #c77dff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: pulseGlow 3s infinite alternate;
-        }
-
-        header p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 4px;
         }
 
         /* Chat Screen Box */
@@ -247,7 +241,6 @@
 <div class="app-container">
     <header>
         <h1>Mighty AI</h1>
-        <p>Powered by Gemini</p>
     </header>
 
     <div class="chat-window" id="chatWindow">
@@ -304,19 +297,24 @@
             if (!response.ok) throw new Error("Network response error.");
 
             const data = await response.json();
-            
-            // Remove the loading dots
             loader.remove();
 
-            // Extract text matching your worker's structural response format
-            const aiText = data.candidates[0].content.parts[0].text;
+            // Safe parsing wrapper to grab text from Gemini format
+            let aiText = "";
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                aiText = data.candidates[0].content.parts[0].text;
+            } else if (data.text) {
+                aiText = data.text;
+            } else {
+                aiText = "I received the message, but my parsing engine didn't recognize the structure.";
+            }
             
             // 4. Render AI response bubble
             appendMessage(aiText, "ai-message");
 
         } catch (error) {
             loader.remove();
-            appendMessage("Sorry, I'm having trouble connecting to my engine right now.", "ai-message");
+            appendMessage("Sorry, I'm having trouble connecting to my engine right now. Make sure your Gemini API Key is saved correctly inside your Cloudflare environment variables!", "ai-message");
             console.error(error);
         }
     }
