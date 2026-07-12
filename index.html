@@ -126,7 +126,7 @@
         .settings-modal {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 10, 12, 0.9);
+            background: rgba(10, 10, 12, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             z-index: 200;
@@ -169,8 +169,8 @@
             color: var(--text-muted);
         }
 
-        /* Premium Styled Select Box */
-        .setting-row select {
+        /* Premium Styled Select Box and Text Input */
+        .setting-row select, .setting-row input[type="text"] {
             background: #181822;
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 16px;
@@ -178,8 +178,11 @@
             color: var(--text-main);
             font-size: 1rem;
             outline: none;
-            cursor: pointer;
-            -webkit-appearance: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .setting-row input[type="text"]:focus {
+            border-color: var(--accent-secondary);
         }
 
         /* VIEW 1: Traditional Premium Chat Layout */
@@ -284,7 +287,7 @@
             margin-left: 2px;
         }
 
-        /* VIEW 2: ChatGPT Immersive Voice Mode Screen */
+        /* VIEW 2: Immersive Voice Mode Screen */
         .live-voice-view {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -316,29 +319,39 @@
             width: 100%;
         }
 
+        /* FIXED STABLE BASE ORB WITH SMOOTH TRANSITION SPEED MATRICES */
         .voice-orb {
             width: 150px;
             height: 150px;
             background: linear-gradient(45deg, #7b2cbf, #b76eff, #e0aaff);
             border-radius: 50%;
             filter: drop-shadow(0 0 30px rgba(157, 77, 221, 0.5));
-            transition: all 0.5s ease-in-out;
+            transform: scale(1);
             transform-origin: center;
+            /* Handles sizing and glow shifts flawlessly without skipping frames */
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        filter 0.6s ease, 
+                        background 0.6s ease;
         }
 
+        /* Distinct states manipulate shape changes smoothly without jumping scales */
         .voice-orb.listening {
-            animation: morphListening 4s infinite linear alternate, pulseListening 2s infinite ease-in-out;
+            animation: morphListening 5s infinite linear alternate;
+            transform: scale(1);
+            filter: drop-shadow(0 0 35px rgba(157, 77, 221, 0.6));
         }
 
         .voice-orb.thinking {
-            scale: 0.9;
-            animation: morphThinking 1.2s infinite linear;
+            animation: morphThinking 1.8s infinite linear;
+            transform: scale(0.88);
+            filter: drop-shadow(0 0 25px rgba(224, 170, 255, 0.4));
             background: linear-gradient(45deg, #4a157d, #7b2cbf, #9d4edd);
         }
 
         .voice-orb.speaking {
-            animation: morphSpeaking 2s infinite linear alternate, pulseSpeaking 0.6s infinite ease-in-out alternate;
-            scale: 1.15;
+            animation: morphSpeaking 2s infinite linear alternate;
+            transform: scale(1.18);
+            filter: drop-shadow(0 0 50px rgba(183, 110, 255, 0.8));
         }
 
         .voice-subtitles {
@@ -389,20 +402,19 @@
         @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
+        /* Unified Fluid Morph Layouts */
         @keyframes morphListening {
-            0% { border-radius: 45% 55% 50% 50% / 50% 50% 50% 50%; }
-            100% { border-radius: 55% 45% 52% 48% / 48% 52% 45% 55%; }
+            0% { border-radius: 48% 52% 50% 50% / 50% 50% 50% 50%; }
+            100% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; }
         }
-        @keyframes pulseListening { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
         @keyframes morphThinking {
-            0% { transform: rotate(0deg) scale(0.95); border-radius: 40% 60% 40% 60% / 40% 60% 40% 60%; }
-            100% { transform: rotate(360deg) scale(0.95); border-radius: 60% 40% 60% 40% / 60% 40% 60% 40%; }
+            0% { transform: scale(0.88) rotate(0deg); border-radius: 42% 58% 45% 55% / 45% 55% 42% 58%; }
+            100% { transform: scale(0.88) rotate(360deg); border-radius: 58% 42% 55% 45% / 55% 42% 58% 45%; }
         }
         @keyframes morphSpeaking {
-            0% { border-radius: 30% 70% 40% 60% / 50% 30% 70% 50%; }
-            100% { border-radius: 65% 35% 60% 40% / 40% 60% 35% 65%; }
+            0% { border-radius: 35% 65% 42% 58% / 55% 38% 62% 45%; }
+            100% { border-radius: 62% 38% 58% 42% / 42% 58% 38% 62%; }
         }
-        @keyframes pulseSpeaking { 0% { transform: scale(1); } 100% { transform: scale(1.12); } }
     </style>
 </head>
 <body>
@@ -431,12 +443,18 @@
         
         <div class="setting-row">
             <label for="personalitySelect">AI Personality</label>
-            <select id="personalitySelect">
+            <select id="personalitySelect" onchange="handlePersonalityChange()">
                 <option value="standard">Standard (Default Balanced)</option>
                 <option value="professional">Professional (Smart & Technical)</option>
                 <option value="sarcastic">Sarcastic (Funny & Witty)</option>
                 <option value="supportive">Supportive (Kind & Encouraging)</option>
+                <option value="custom">Custom (Write your own...)</option>
             </select>
+        </div>
+
+        <div class="setting-row" id="customPersonalityRow" style="display: none;">
+            <label for="customPersonalityInput">Custom Instructions</label>
+            <input type="text" id="customPersonalityInput" placeholder="e.g., Talk like a 1920s pirate detective...">
         </div>
     </div>
 
@@ -479,6 +497,8 @@
     const chatWindow = document.getElementById("chatWindow");
     const userInput = document.getElementById("userInput");
     const personalitySelect = document.getElementById("personalitySelect");
+    const customPersonalityRow = document.getElementById("customPersonalityRow");
+    const customPersonalityInput = document.getElementById("customPersonalityInput");
     
     const voiceStatus = document.getElementById("voiceStatus");
     const voiceOrb = document.getElementById("voiceOrb");
@@ -488,12 +508,21 @@
     let recognition = null;
     let currentUtterance = null;
 
-    // Toggle Settings Visibility
     function toggleSettings(show) {
         settingsModal.style.display = show ? "flex" : "none";
     }
 
-    // Dynamic Context Builder mapping to the dropdown selection
+    // Handles expanding/collapsing custom personality row
+    function handlePersonalityChange() {
+        if (personalitySelect.value === "custom") {
+            customPersonalityRow.style.display = "flex";
+            customPersonalityInput.focus();
+        } else {
+            customPersonalityRow.style.display = "none";
+        }
+    }
+
+    // Dynamic Context Builder
     function getContextualModifier() {
         const personality = personalitySelect.value;
         if (personality === "professional") {
@@ -502,8 +531,11 @@
             return "[System Persona: Be witty, slightly sarcastic, funny, and highly conversational.] ";
         } else if (personality === "supportive") {
             return "[System Persona: Be deeply encouraging, kind, empathetic, and exceptionally supportive.] ";
+        } else if (personality === "custom") {
+            const customValue = customPersonalityInput.value.trim();
+            return customValue ? `[System Persona: ${customValue}] ` : "";
         }
-        return ""; // Standard option does not mutate the text input channel
+        return "";
     }
 
     // Web Speech Setup
@@ -538,8 +570,9 @@
         };
     }
 
+    // FIXED CLASS HANDLING - Removes classes without stripping base setup to ensure fluid transitions
     function setOrbState(state) {
-        voiceOrb.className = "voice-orb";
+        voiceOrb.classList.remove("listening", "thinking", "speaking");
         if (state) voiceOrb.classList.add(state);
     }
 
@@ -573,7 +606,6 @@
         setOrbState("thinking");
         voiceStatus.innerText = "Thinking...";
 
-        // Inject personality context rule invisibly before firing request to Cloudflare
         const payloadMessage = getContextualModifier() + text;
 
         try {
@@ -614,7 +646,7 @@
         window.speechSynthesis.speak(currentUtterance);
     }
 
-    /* Text Entry Form Handling */
+    /* Text Handling */
     userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendTextMessage(); });
 
     async function sendTextMessage() {
@@ -625,8 +657,6 @@
         userInput.value = "";
 
         const loader = showTypingIndicator();
-        
-        // Inject personality rule context seamlessly
         const payloadMessage = getContextualModifier() + query;
 
         try {
