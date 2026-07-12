@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mighty AI</title>
     <style>
         :root {
@@ -20,16 +20,18 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for perfect iPhone rendering */
             overflow: hidden;
             background: radial-gradient(circle at center, #1a0b2e 0%, #0a0a0c 100%);
         }
@@ -38,73 +40,95 @@
         .app-container {
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             max-width: 600px;
-            max-height: 850px;
             background: rgba(19, 19, 26, 0.75);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
-            animation: fadeIn 0.8s ease-out;
+            position: relative;
         }
 
         @media (min-width: 600px) {
             .app-container {
                 border-radius: 24px;
-                height: 90vh;
+                height: 85vh;
+                height: 85dvh;
+                border: 1px solid rgba(255, 255, 255, 0.05);
                 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(123, 44, 191, 0.15);
             }
         }
 
-        /* Header Styling */
+        /* Top Bar Header */
         header {
-            padding: 24px;
-            text-align: center;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: linear-gradient(180deg, rgba(123, 44, 191, 0.1) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(123, 44, 191, 0.05) 0%, transparent 100%);
+            z-index: 10;
         }
 
         header h1 {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             background: linear-gradient(45deg, #e0aaff, #9d4edd, #c77dff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: pulseGlow 3s infinite alternate;
         }
 
-        /* Chat Screen Box */
+        /* Mode Switcher Button */
+        .mode-toggle {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* SCREEN 1: Standard Chat View */
+        .chat-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
         .chat-window {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 16px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Scrollbar styling */
-        .chat-window::-webkit-scrollbar {
-            width: 6px;
-        }
-        .chat-window::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        /* Message Bubbles & Animations */
         .message {
-            max-width: 80%;
-            padding: 14px 18px;
+            max-width: 85%;
+            padding: 12px 16px;
             border-radius: 20px;
             font-size: 0.95rem;
             line-height: 1.5;
             word-wrap: break-word;
             opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            transform: translateY(15px);
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .user-message {
@@ -123,11 +147,94 @@
             border: 1px solid rgba(255, 255, 255, 0.03);
         }
 
-        /* Input Area Footer */
+        /* SCREEN 2: Immersive ChatGPT Live View */
+        .live-view {
+            flex: 1;
+            display: none; /* Controlled via JS */
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 24px;
+            position: relative;
+            background: radial-gradient(circle at center, #17082c 0%, #060608 100%);
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* The Live Visualizer Orb Container */
+        .visualizer-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Morphing Glowing Audio Orb */
+        .live-orb {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(45deg, #7b2cbf, #9d4edd, #e0aaff);
+            border-radius: 50%;
+            position: relative;
+            filter: drop-shadow(0 0 30px rgba(157, 77, 221, 0.6));
+            animation: morphOrb 6s infinite linear alternate, spinOrb 12s infinite linear;
+            transition: all 0.5s ease;
+        }
+
+        /* Pulse rings behind the orb */
+        .live-orb::before, .live-orb::after {
+            content: '';
+            position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            border-radius: inherit;
+            background: rgba(157, 77, 221, 0.15);
+            z-index: -1;
+            animation: pulseRing 2.5s infinite cubic-bezier(0.25, 0, 0, 1);
+        }
+
+        .live-orb::after {
+            animation-delay: 1.25s;
+        }
+
+        /* AI States for the Orb */
+        .live-orb.thinking {
+            filter: drop-shadow(0 0 40px rgba(199, 125, 255, 0.8));
+            animation: morphOrb 2s infinite linear alternate, spinOrb 4s infinite linear;
+            scale: 1.1;
+        }
+
+        /* Live Subtitles Box */
+        .live-subtitle-box {
+            width: 100%;
+            max-height: 180px;
+            overflow-y: auto;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .live-subtitle-box p {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.6;
+            color: var(--text-main);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .live-subtitle-box .user-history {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        /* Unified Bottom Input Bar */
         .input-footer {
-            padding: 20px;
+            padding: 16px 20px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom)); /* Supports iOS notch/home-bar */
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(10, 10, 12, 0.5);
+            background: rgba(10, 10, 12, 0.8);
         }
 
         .input-wrapper {
@@ -151,7 +258,7 @@
             border: none;
             outline: none;
             color: var(--text-main);
-            font-size: 0.95rem;
+            font-size: 16px; /* Strict requirement to stop iOS auto-zoom */
             padding: 10px 0;
         }
 
@@ -170,16 +277,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: transform 0.2s ease, filter 0.2s ease;
-        }
-
-        .send-btn:hover {
-            transform: scale(1.05);
-            filter: brightness(1.1);
+            transition: transform 0.2s ease;
         }
 
         .send-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.9);
         }
 
         .send-btn svg {
@@ -189,16 +291,16 @@
             margin-left: 2px;
         }
 
-        /* Typing Loader Animation */
+        /* Typing Dots Overlay for Chat Mode */
         .typing-indicator {
             display: flex;
             gap: 5px;
-            padding: 14px 18px;
+            padding: 12px 16px;
             background: var(--ai-bubble);
             border-radius: 20px;
             border-bottom-left-radius: 4px;
             align-self: flex-start;
-            animation: slideIn 0.3s ease forwards;
+            animation: slideIn 0.2s ease forwards;
         }
 
         .typing-dot {
@@ -208,31 +310,29 @@
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
-        /* Keyframe Definitions */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* Keyframes */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        
+        /* Smooth ChatGPT style fluid orb animations */
+        @keyframes morphOrb {
+            0% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            50% { border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%; }
+            100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
         }
 
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes spinOrb {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        @keyframes pulseGlow {
-            from { filter: drop-shadow(0 0 2px rgba(157, 77, 221, 0.2)); }
-            to { filter: drop-shadow(0 0 8px rgba(157, 77, 221, 0.6)); }
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
         }
     </style>
 </head>
@@ -241,18 +341,34 @@
 <div class="app-container">
     <header>
         <h1>Mighty AI</h1>
+        <button class="mode-toggle" id="modeToggle" onclick="toggleMode()">
+            <span>✨</span> <span id="modeText">Live Mode</span>
+        </button>
     </header>
 
-    <div class="chat-window" id="chatWindow">
-        <div class="message ai-message">
-            Hey! I'm Mighty AI. What are we building or working on today?
+    <div class="chat-view" id="chatView">
+        <div class="chat-window" id="chatWindow">
+            <div class="message ai-message">
+                Hey! I'm Mighty AI. What are we building or working on today?
+            </div>
+        </div>
+    </div>
+
+    <div class="live-view" id="liveView">
+        <div class="visualizer-container">
+            <div class="live-orb" id="liveOrb"></div>
+        </div>
+        
+        <div class="live-subtitle-box">
+            <p id="liveUserHistory" class="user-history"></p>
+            <p id="liveAiResponse">Listening for your prompt...</p>
         </div>
     </div>
 
     <div class="input-footer">
         <div class="input-wrapper">
             <input type="text" id="userInput" placeholder="Message Mighty AI..." autocomplete="off">
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+            <button class="send-btn" id="sendBtn" onclick="processInput()">
                 <svg viewBox="0 0 24 24">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                 </svg>
@@ -262,70 +378,96 @@
 </div>
 
 <script>
-    // Live Cloudflare Worker Proxy Endpoint
     const WORKER_URL = "https://mightyai.landonsloat70-62c.workers.dev/";
 
+    let currentMode = "chat"; // Options: 'chat' or 'live'
+
+    const chatView = document.getElementById("chatView");
+    const liveView = document.getElementById("liveView");
+    const modeText = document.getElementById("modeText");
     const chatWindow = document.getElementById("chatWindow");
     const userInput = document.getElementById("userInput");
+    const liveOrb = document.getElementById("liveOrb");
+    const liveUserHistory = document.getElementById("liveUserHistory");
+    const liveAiResponse = document.getElementById("liveAiResponse");
 
-    // Allow sending message by pressing 'Enter' key
-    userInput.addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            sendMessage();
-        }
+    // Enter Key Handler
+    userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") processInput();
     });
 
-    async function sendMessage() {
+    // Toggle between traditional chat layout and ChatGPT Live UI
+    function toggleMode() {
+        if (currentMode === "chat") {
+            currentMode = "live";
+            chatView.style.display = "none";
+            liveView.style.display = "flex";
+            modeText.innerText = "Text View";
+            userInput.placeholder = "Talk to Mighty AI Live...";
+        } else {
+            currentMode = "chat";
+            liveView.style.display = "none";
+            chatView.style.display = "flex";
+            modeText.innerText = "Live Mode";
+            userInput.placeholder = "Message Mighty AI...";
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    }
+
+    // Handles layout orchestration depending on current view mode
+    async function processInput() {
         const query = userInput.value.trim();
         if (!query) return;
 
-        // 1. Render User Message bubble
-        appendMessage(query, "user-message");
         userInput.value = "";
+        let loaderElement = null;
 
-        // 2. Render Animated Typing Indicator
-        const loader = showTypingIndicator();
+        if (currentMode === "chat") {
+            appendChatMessage(query, "user-message");
+            loaderElement = showTypingIndicator();
+        } else {
+            // Live view immediate reaction
+            liveUserHistory.innerText = `You: "${query}"`;
+            liveAiResponse.innerText = "Thinking...";
+            liveOrb.classList.add("thinking");
+        }
 
         try {
-            // 3. Make request to your Cloudflare worker
             const response = await fetch(WORKER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: query })
             });
 
-            if (!response.ok) throw new Error("Network response error.");
+            if (!response.ok) throw new Error();
 
             const data = await response.json();
-            loader.remove();
-
-            // Safe parsing wrapper to grab text from Gemini format
-            let aiText = "";
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                aiText = data.candidates[0].content.parts[0].text;
-            } else if (data.text) {
-                aiText = data.text;
-            } else {
-                aiText = "I received the message, but my parsing engine didn't recognize the structure.";
-            }
             
-            // 4. Render AI response bubble
-            appendMessage(aiText, "ai-message");
+            if (currentMode === "chat") {
+                if (loaderElement) loaderElement.remove();
+                appendChatMessage(data.text, "ai-message");
+            } else {
+                liveOrb.classList.remove("thinking");
+                // Animate text dynamically onto screen layout
+                liveAiResponse.innerText = data.text;
+            }
 
         } catch (error) {
-            loader.remove();
-            appendMessage("Sorry, I'm having trouble connecting to my engine right now. Make sure your Gemini API Key is saved correctly inside your Cloudflare environment variables!", "ai-message");
-            console.error(error);
+            if (currentMode === "chat") {
+                if (loaderElement) loaderElement.remove();
+                appendChatMessage("Mighty AI service is temporarily unavailable. Please try again later.", "ai-message");
+            } else {
+                liveOrb.classList.remove("thinking");
+                liveAiResponse.innerText = "Mighty AI service is temporarily unavailable. Please try again later.";
+            }
         }
     }
 
-    function appendMessage(text, className) {
+    function appendChatMessage(text, className) {
         const messageDiv = document.createElement("div");
         messageDiv.className = `message ${className}`;
         messageDiv.innerText = text;
         chatWindow.appendChild(messageDiv);
-        
-        // Push scroll down to newest message smoothly
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
