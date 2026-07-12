@@ -169,7 +169,6 @@
             color: var(--text-muted);
         }
 
-        /* Premium Styled Select Box and Text Input */
         .setting-row select, .setting-row input[type="text"] {
             background: #181822;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -185,7 +184,7 @@
             border-color: var(--accent-secondary);
         }
 
-        /* VIEW 1: Traditional Premium Chat Layout */
+        /* Traditional Premium Chat Layout */
         .chat-view {
             flex: 1;
             display: flex;
@@ -287,7 +286,7 @@
             margin-left: 2px;
         }
 
-        /* VIEW 2: Immersive Voice Mode Screen */
+        /* Immersive Voice Mode Screen */
         .live-voice-view {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -317,41 +316,60 @@
             justify-content: center;
             align-items: center;
             width: 100%;
+            position: relative;
         }
 
-        /* FIXED STABLE BASE ORB WITH SMOOTH TRANSITION SPEED MATRICES */
+        /* LAYER 1: STATE CONTROLLER (Handles macro scale & shadow transitions cleanly) */
+        .orb-state-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.7s ease;
+        }
+        
+        .orb-state-container:has(.listening) {
+            transform: scale(1);
+            filter: drop-shadow(0 0 35px rgba(157, 77, 221, 0.5));
+        }
+        
+        .orb-state-container:has(.thinking) {
+            transform: scale(0.82);
+            filter: drop-shadow(0 0 25px rgba(224, 170, 255, 0.3));
+        }
+        
+        .orb-state-container:has(.speaking) {
+            transform: scale(1.22);
+            filter: drop-shadow(0 0 55px rgba(183, 110, 255, 0.7));
+        }
+
+        /* LAYER 2: BREATHING MATRIX (Uninterrupted gentle ebbing loop) */
+        .orb-breather {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: permanentBreathe 3s infinite ease-in-out alternate;
+        }
+
+        /* LAYER 3: LIQUID MORPHER (Strictly mutates geometry shape without displacement) */
         .voice-orb {
             width: 150px;
             height: 150px;
             background: linear-gradient(45deg, #7b2cbf, #b76eff, #e0aaff);
             border-radius: 50%;
-            filter: drop-shadow(0 0 30px rgba(157, 77, 221, 0.5));
-            transform: scale(1);
-            transform-origin: center;
-            /* Handles sizing and glow shifts flawlessly without skipping frames */
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                        filter 0.6s ease, 
-                        background 0.6s ease;
+            transition: background 0.7s ease;
         }
 
-        /* Distinct states manipulate shape changes smoothly without jumping scales */
         .voice-orb.listening {
-            animation: morphListening 5s infinite linear alternate;
-            transform: scale(1);
-            filter: drop-shadow(0 0 35px rgba(157, 77, 221, 0.6));
+            animation: morphListening 4s infinite ease-in-out alternate;
         }
 
         .voice-orb.thinking {
-            animation: morphThinking 1.8s infinite linear;
-            transform: scale(0.88);
-            filter: drop-shadow(0 0 25px rgba(224, 170, 255, 0.4));
+            animation: morphThinking 1.4s infinite ease-in-out;
             background: linear-gradient(45deg, #4a157d, #7b2cbf, #9d4edd);
         }
 
         .voice-orb.speaking {
-            animation: morphSpeaking 2s infinite linear alternate;
-            transform: scale(1.18);
-            filter: drop-shadow(0 0 50px rgba(183, 110, 255, 0.8));
+            animation: morphSpeaking 0.8s infinite ease-in-out alternate;
         }
 
         .voice-subtitles {
@@ -402,18 +420,26 @@
         @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
-        /* Unified Fluid Morph Layouts */
+        /* Smooth Breathing Parameters */
+        @keyframes permanentBreathe {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Perfectly Balanced Visual Center Morphing Metrics */
         @keyframes morphListening {
-            0% { border-radius: 48% 52% 50% 50% / 50% 50% 50% 50%; }
-            100% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; }
+            0% { border-radius: 50% 50% 47% 53% / 48% 52% 48% 52%; }
+            100% { border-radius: 47% 53% 50% 50% / 52% 48% 52% 48%; }
         }
         @keyframes morphThinking {
-            0% { transform: scale(0.88) rotate(0deg); border-radius: 42% 58% 45% 55% / 45% 55% 42% 58%; }
-            100% { transform: scale(0.88) rotate(360deg); border-radius: 58% 42% 55% 45% / 55% 42% 58% 45%; }
+            0% { border-radius: 50% 50% 43% 57% / 44% 56% 44% 56%; }
+            50% { border-radius: 45% 55% 54% 46% / 53% 47% 46% 54%; }
+            100% { border-radius: 50% 50% 43% 57% / 44% 56% 44% 56%; }
         }
         @keyframes morphSpeaking {
-            0% { border-radius: 35% 65% 42% 58% / 55% 38% 62% 45%; }
-            100% { border-radius: 62% 38% 58% 42% / 42% 58% 38% 62%; }
+            0% { border-radius: 44% 56% 38% 62% / 58% 42% 58% 42%; }
+            50% { border-radius: 58% 42% 54% 46% / 44% 56% 42% 58%; }
+            100% { border-radius: 44% 56% 38% 62% / 58% 42% 58% 42%; }
         }
     </style>
 </head>
@@ -461,7 +487,7 @@
     <div class="chat-view" id="chatView">
         <div class="chat-window" id="chatWindow">
             <div class="message ai-message">
-                Hey! I'm Mighty AI. What are we building or working on today?
+                Hey I'm Mighty AI
             </div>
         </div>
 
@@ -479,9 +505,15 @@
 
     <div class="live-voice-view" id="liveVoiceView">
         <div class="live-status" id="voiceStatus">Connecting...</div>
+        
         <div class="orb-container">
-            <div class="voice-orb listening" id="voiceOrb"></div>
+            <div class="orb-state-container">
+                <div class="orb-breather">
+                    <div class="voice-orb listening" id="voiceOrb"></div>
+                </div>
+            </div>
         </div>
+        
         <div class="voice-subtitles" id="voiceSubtitles">Tap the button below to start talking...</div>
         <button class="end-voice-btn" onclick="endLiveVoiceSession()">End Session</button>
     </div>
@@ -512,7 +544,6 @@
         settingsModal.style.display = show ? "flex" : "none";
     }
 
-    // Handles expanding/collapsing custom personality row
     function handlePersonalityChange() {
         if (personalitySelect.value === "custom") {
             customPersonalityRow.style.display = "flex";
@@ -522,7 +553,6 @@
         }
     }
 
-    // Dynamic Context Builder
     function getContextualModifier() {
         const personality = personalitySelect.value;
         if (personality === "professional") {
@@ -570,7 +600,6 @@
         };
     }
 
-    // FIXED CLASS HANDLING - Removes classes without stripping base setup to ensure fluid transitions
     function setOrbState(state) {
         voiceOrb.classList.remove("listening", "thinking", "speaking");
         if (state) voiceOrb.classList.add(state);
